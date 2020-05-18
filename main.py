@@ -13,21 +13,13 @@ assets.init_app(app)
 
 def get_str(board):
     return str(board).replace(' ', '').replace('\n', '')
-    
-    
-'''board = chess.Board('rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1')
-print(get_str(board))
-print(board.fen())
-board.push_san("h6")
-board.push_san("e5")
-board.push_san("d5")
-print(board)
-print(board.legal_moves)
-board.push_san("exd6")
-print(board)
-'''
 
 
+@app.route('/games')
+def games():
+    return render_template('new_game.html')
+
+    
 @app.route('/games/<int:game_id>/<string:color>')
 def game_session(game_id, color):
     print(game_id, color)
@@ -37,7 +29,7 @@ def game_session(game_id, color):
     if game is None:
         return 'Invalid game id'
     return render_template('main.html', game_id=game_id, color=color)
-
+    
     
 def get_data(game_id):
     game = Game.get_or_none(Game.id == game_id)
@@ -72,9 +64,19 @@ def get_data(game_id):
     return res
     
     
-@app.route('/api/games/<int:game_id>', methods=['GET', 'POST'])
-def add_message(game_id):
+@app.route('/api/games/<int:game_id>', methods=['GET'])
+def get_game_data(game_id):
     return jsonify(get_data(game_id))
+    
+    
+@app.route('/api/games/create', methods=['POST'])
+def create_game():
+    data = request.json
+    game = Game.create(name_white=data['name_white'],
+                       name_black=data['name_black'],
+                       duration=data['duration'],
+                       timeadd=data['timeadd'])
+    return jsonify(get_data(game.id))
     
     
 @socketio.on('processMove')

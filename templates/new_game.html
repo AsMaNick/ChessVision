@@ -1,0 +1,46 @@
+{% assets output='gen/packed_new_game.js', 'new_game.js' %}
+    <script type='text/javascript' src='{{ ASSET_URL }}'></script>
+{% endassets %}
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+
+<body>
+    <h1>
+        Create new game
+    </h1>
+    <form onsubmit='create(); return false;'>
+        Your name:
+        <input id='name1' required='required' pattern='[A-Za-z0-9]{2,30}' title='Only english letters and digits, at least 2'>
+        <br>
+        <br>
+        Opponent's name:
+        <input id='name2' required='required' pattern='[A-Za-z0-9]{2,30}' title='Only english letters and digits, at least 2'>
+        <br>
+        <br>
+        Game duration: 
+        <select id='duration'>
+            <option>0:01:00</option>
+            <option>0:02:00</option>
+            <option>0:03:00</option>
+            <option selected>0:05:00</option>
+            <option>0:10:00</option>
+            <option>0:15:00</option>
+            <option>0:30:00</option>
+            <option>1:00:00</option>
+            <option>2:30:00</option>
+        </select>
+        <br>
+        <br>
+        Time addition: 
+        <select id='timeadd'>
+            <option>0s</option>
+            <option>1s</option>
+            <option selected>2s</option>
+            <option>5s</option>
+            <option>10s</option>
+            <option>30s</option>
+        </select>
+        <br>
+        <br>
+        <input type='submit' value='Create'>
+    </form>
+</body>
