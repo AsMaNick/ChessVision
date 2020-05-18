@@ -1,0 +1,47 @@
+{% assets output="gen/packed.css",
+          "styles.css" %}
+    <link rel='stylesheet' href="{{ ASSET_URL }}">
+{% endassets %}
+{% assets output="gen/packed.js",
+          "main.js" %}
+    <script type="text/javascript" src="{{ ASSET_URL }}"></script>
+{% endassets %}
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.7.3/socket.io.min.js"></script>
+
+<body>
+    <div>
+        <div class="player"> 
+        </div> 
+        <br>
+        <div class="board">    
+            <div class="coordinates">
+                <div class="number" style="font-size: 17.0732px; transform: translate(-145%, 0%); width: 11.3821px;">8</div>
+                <div class="number" style="font-size: 17.0732px; transform: translate(-145%, 100%); width: 11.3821px;">7</div>
+                <div class="number" style="font-size: 17.0732px; transform: translate(-145%, 200%); width: 11.3821px;">6</div>
+                <div class="number" style="font-size: 17.0732px; transform: translate(-145%, 300%); width: 11.3821px;">5</div>
+                <div class="number" style="font-size: 17.0732px; transform: translate(-145%, 400%); width: 11.3821px;">4</div>
+                <div class="number" style="font-size: 17.0732px; transform: translate(-145%, 500%); width: 11.3821px;">3</div>
+                <div class="number" style="font-size: 17.0732px; transform: translate(-145%, 600%); width: 11.3821px;">2</div>
+                <div class="number" style="font-size: 17.0732px; transform: translate(-145%, 700%); width: 11.3821px;">1</div> 
+                <div class="letter" style="font-size: 17.0732px; transform: translate(0%, 110%);">a</div>
+                <div class="letter" style="font-size: 17.0732px; transform: translate(100%, 110%);">b</div>
+                <div class="letter" style="font-size: 17.0732px; transform: translate(200%, 110%);">c</div>
+                <div class="letter" style="font-size: 17.0732px; transform: translate(300%, 110%);">d</div>
+                <div class="letter" style="font-size: 17.0732px; transform: translate(400%, 110%);">e</div>
+                <div class="letter" style="font-size: 17.0732px; transform: translate(500%, 110%);">f</div>
+                <div class="letter" style="font-size: 17.0732px; transform: translate(600%, 110%);">g</div>
+                <div class="letter" style="font-size: 17.0732px; transform: translate(700%, 110%);">h</div>
+            </div>
+            <div class="pieces">
+            </div>
+        </div>
+        <br>
+        <br>
+        <div class="player"> 
+        </div> 
+    </div>
+    <script>
+        init({{game_id}}, "{{color}}");
+    </script>
+</body>

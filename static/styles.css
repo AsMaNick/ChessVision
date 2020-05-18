@@ -1,0 +1,127 @@
+.player {
+    width: 500px;
+    margin:0 auto;
+    overflow: initial;
+}
+
+.active-player {
+    font-weight: 900;
+}
+
+.board {
+    margin:0 auto;
+    background: url(img/board.jpg) 0% 0% / 100% 100% no-repeat;
+    width: 500px;
+    height: 500px;
+    border-radius: 3px;
+    overflow: initial;
+}
+
+.coordinates, .pieces {
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+    outline: none;
+    transform: translate(0);
+}
+
+.pieces {
+    transform: translate(0, -100%);
+}
+
+.number {
+    color: #000;
+    font-weight: 600;
+    text-align: right;
+    line-height: 12.5%;
+    height: 12.5%;
+    padding-top: 6.25%;
+    display: block;
+    position: absolute;
+    box-sizing: border-box;
+    user-select: none;
+}
+
+.letter {
+    color: #000;
+    font-weight: 600;
+    bottom: 0;
+    text-align: center;
+    width: 12.5%;
+    display: block;
+    position: absolute;
+    box-sizing: border-box;
+    user-select: none;
+}
+
+.piece {
+    background-size: 100%;
+    bottom: 0;
+    cursor: -webkit-grab;
+    height: 12.5%;
+    left: 0;
+    overflow: hidden;
+    position: absolute;
+    top: 0;
+    touch-action: none;
+    width: 12.5%;
+    z-index: 1;
+    
+    display: block;
+    box-sizing: border-box;
+}
+
+.dragging {
+    cursor: -webkit-grabbing;
+    z-index: 2;
+}
+
+.black-pawn {
+    background-image: url(img/black/pawn.png)
+}
+
+.black-knight {
+    background-image: url(img/black/knight.png)
+}
+
+.black-bishop {
+    background-image: url(img/black/bishop.png)
+}
+
+.black-rook {
+    background-image: url(img/black/rook.png)
+}
+
+.black-queen {
+    background-image: url(img/black/queen.png)
+}
+
+.black-king {
+    background-image: url(img/black/king.png)
+}
+
+.white-pawn {
+    background-image: url(img/white/pawn.png)
+}
+
+.white-knight {
+    background-image: url(img/white/knight.png)
+}
+
+.white-bishop {
+    background-image: url(img/white/bishop.png)
+}
+
+.white-rook {
+    background-image: url(img/white/rook.png)
+}
+
+.white-queen {
+    background-image: url(img/white/queen.png)
+}
+
+.white-king {
+    background-image: url(img/white/king.png)
+}
