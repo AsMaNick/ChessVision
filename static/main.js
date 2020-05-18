@@ -210,8 +210,13 @@ function calculateTime(t) {
 
 function updateTime(data, color) {
     var elems = document.getElementsByClassName('player');
-    var t1 = data.duration - data.spent_time_white;
-    var t2 = data.duration - data.spent_time_black;
+    var black_moves = parseInt(data.fen.substr(data.fen.lastIndexOf(' ') + 1)) - 1;
+    var white_moves = black_moves;
+    if (data.current_move == 'black') {
+        ++white_moves;
+    }
+    var t1 = data.duration - data.spent_time_white + white_moves * data.time_add;
+    var t2 = data.duration - data.spent_time_black + black_moves * data.time_add;
     var name1 = data.name_white;
     var name2 = data.name_black;
     if (color == 'white') {

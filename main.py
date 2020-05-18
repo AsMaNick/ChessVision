@@ -75,7 +75,7 @@ def create_game():
     game = Game.create(name_white=data['name_white'],
                        name_black=data['name_black'],
                        duration=data['duration'],
-                       timeadd=data['timeadd'])
+                       timeadd=data['time_add'])
     return jsonify(get_data(game.id))
     
     
