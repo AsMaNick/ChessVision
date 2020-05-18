@@ -1,6 +1,9 @@
 var BOARD_SIZE = 500;
 
 function getPieceColor(c) {
+    if (c.toLowerCase() == c.toUpperCase()) {
+        return '';
+    }
     if (c == c.toLowerCase()) {
         return 'black';
     }
@@ -243,6 +246,14 @@ document.onmousedown = function(e) {
     }
     var translate = parseIntList(elem.style.transform);
     var x = translate[0] / 100, y = 7 - translate[1] / 100;
+    var row = y, column = 7 - x;
+    if (data.color == 'white') {
+        row = 7 - row;
+        column = 7 - column;
+    }
+    if (getPieceColor(data.current_position[row * 8 + column]) != data.color) {
+        return;
+    }
     elem.className += ' dragging';
     dragObject.elem = elem;
     dragObject.startX = e.pageX;
@@ -390,6 +401,7 @@ function updateTime(data, color) {
 function updateData(color) {
     data.color = color;
     data.current_move = data.fen[data.fen.indexOf(' ') + 1];
+    data.current_position = parseFen(data.fen);
     if (data.current_move == 'w') {
         data.current_move = 'white';
     } else {
