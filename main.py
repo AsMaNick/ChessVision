@@ -59,6 +59,7 @@ def get_data(game_id):
             'spent_time_white': game.spent_time_white,
             'spent_time_black': game.spent_time_black,
             'last_move_time': game.last_move_time,
+            'last_move': game.last_move,
             'game_status': game_status
         }
     return res
@@ -94,6 +95,7 @@ def recieve_move(data, methods=['GET', 'POST']):
     else:
         game.spent_time_black += cur_time - game.last_move_time
     game.last_move_time = cur_time
+    game.last_move = move
     try:
         board.push_uci(move)
     except Exception as e:

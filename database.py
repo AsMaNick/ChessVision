@@ -19,12 +19,7 @@ class Game(BaseModel):
     spent_time_white = FloatField(default=0)
     spent_time_black = FloatField(default=0)
     last_move_time = FloatField(default=0)
+    last_move = CharField(default='')
     
     
 Game.create_table()
-g = Game.get(Game.id == 3)
-g.fen = '7k/7P/7K/8/8/8/8/8 b - - 0 1'
-g.last_move_time = 0
-g.spent_time_white = 0
-g.spent_time_black = 0
-g.save()

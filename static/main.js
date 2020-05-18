@@ -154,6 +154,17 @@ function calcVisibility(s, color) {
     return res;
 }
 
+function getCellNumberByNotation(s) {
+    return (8 - parseInt(s[1])) * 8 + (s.charCodeAt(0) - 'a'.charCodeAt(0));
+}
+
+function isLastMove(last_move, i, j) {
+    var num = i * 8 + j;
+    console.log(num, getCellNumberByNotation(last_move.substr(0, 2)), getCellNumberByNotation(last_move.substr(2, 2)));
+    return last_move.length >= 4 && (num == getCellNumberByNotation(last_move.substr(0, 2)) || 
+                                       num == getCellNumberByNotation(last_move.substr(2, 2)));
+}
+
 function drawPosition(s, color) {
     var white = (color == "white");
     drawCoordinates(white);
@@ -175,6 +186,12 @@ function drawPosition(s, color) {
                 piece.style = `transform: translate(${x}%, ${y}%);`;
                 pieces_div.appendChild(piece);   
                 continue;
+            }
+            if (isLastMove(data.last_move, i, j)) {
+                var move_square = document.createElement('div');
+                move_square.className = 'piece move-square';
+                move_square.style = `transform: translate(${x}%, ${y}%);`;
+                pieces_div.appendChild(move_square);   
             }
             var c = s[i * 8 + j];
             if (c == '.') {

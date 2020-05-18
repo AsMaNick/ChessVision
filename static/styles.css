@@ -133,3 +133,8 @@
 .white-darkness {
     background-image: url(img/white/darkness.png)
 }
+
+.move-square {
+    background-color: rgb(204, 145, 34);
+    opacity: 0.5;
+}
