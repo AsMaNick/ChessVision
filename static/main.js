@@ -50,19 +50,118 @@ function drawCoordinates(white) {
     }
 }
 
+function calcVisibility(s, color) {
+    if (data.game_status != 'active') {
+        return new Array(64).fill(1);
+    }
+    var res = new Array(64).fill(0);
+    for (var i = 0; i < 8; ++i) {
+        for (var j = 0; j < 8; ++j) {
+            var c = s[i * 8 + j];
+            if (c == '.' || getPieceColor(c) != color) {
+                continue;
+            }
+            res[i * 8 + j] = 1;
+            if (c == 'P') {
+                if (i == 6 && s[(i - 1) * 8 + j] == '.') {
+                    res[(i - 2) * 8 + j] = 1; 
+                }
+                res[(i - 1) * 8 + j] = 1; 
+                if (j) {
+                    res[(i - 1) * 8 + j - 1] = 1; 
+                }
+                if (j + 1 < 8) {
+                    res[(i - 1) * 8 + j + 1] = 1; 
+                }
+                continue;
+            }
+            if (c == 'p') {
+                if (i == 1 && s[(i + 1) * 8 + j] == '.') {
+                    res[(i + 2) * 8 + j] = 1; 
+                }
+                res[(i + 1) * 8 + j] = 1; 
+                if (j) {
+                    res[(i + 1) * 8 + j - 1] = 1; 
+                }
+                if (j + 1 < 8) {
+                    res[(i + 1) * 8 + j + 1] = 1; 
+                }
+                continue;
+            }
+            c = c.toLowerCase();
+            var candidates = [];
+            if (c == 'k') {
+                candidates.push([i - 1, j - 1]);
+                candidates.push([i - 1, j]);
+                candidates.push([i - 1, j + 1]);
+                candidates.push([i, j - 1]);
+                candidates.push([i, j + 1]);
+                candidates.push([i + 1, j - 1]);
+                candidates.push([i + 1, j]);
+                candidates.push([i + 1, j + 1]);
+            } else if (c == 'n') {
+                candidates.push([i - 2, j - 1]);
+                candidates.push([i - 2, j + 1]);
+                candidates.push([i - 1, j - 2]);
+                candidates.push([i - 1, j + 2]);
+                candidates.push([i + 1, j - 2]);
+                candidates.push([i + 1, j + 2]);
+                candidates.push([i + 2, j - 1]);
+                candidates.push([i + 2, j + 1]);
+            }
+            if (c == 'b' || c == 'q') {
+                for (var dx = -1; dx <= 1; dx += 2) {
+                    for (var dy = -1; dy <= 1; dy += 2) {
+                        var x = i + dx, y = j + dy;
+                        while (0 <= x && 0 <= y && x < 8 && y < 8) {
+                            res[x * 8 + y] = 1;
+                            if (s[x * 8 + y] != '.') {
+                                break;
+                            }
+                            x += dx;
+                            y += dy;
+                        }
+                    }
+                }
+            }
+            if (c == 'r' || c == 'q') {
+                for (var dx = -1; dx <= 1; ++dx) {
+                    for (var dy = -1; dy <= 1; ++dy) {
+                        if ((dx == 0 && dy == 0) || (dx != 0 && dy != 0)) {
+                            continue;
+                        }
+                        var x = i + dx, y = j + dy;
+                        while (0 <= x && 0 <= y && x < 8 && y < 8) {
+                            res[x * 8 + y] = 1;
+                            if (s[x * 8 + y] != '.') {
+                                break;
+                            }
+                            x += dx;
+                            y += dy;
+                        }
+                    }
+                }
+            }
+            console.log(c, i, j);
+            for (var p of candidates) {
+                console.log(p);
+                if (0 <= p[0] && 0 <= p[1] && p[0] < 8 && p[1] < 8) {
+                    res[p[0] * 8 + p[1]] = 1;
+                }
+            }
+        }
+    }
+    return res;
+}
+
 function drawPosition(s, color) {
     var white = (color == "white");
     drawCoordinates(white);
     pieces_div = document.getElementsByClassName("pieces")[0];
     pieces_div.innerHTML = '';
+    visibility = calcVisibility(s, color);
     for (var i = 0; i < 8; ++i) {
         for (var j = 0; j < 8; ++j) {
-            var c = s[i * 8 + j];
-            if (c == '.') {
-                continue;
-            }
-            var piece = document.createElement('div');
-            piece.className = 'piece ' + getPieceClass(c);
             var row = i, column = 7 - j;
             if (white) {
                 row = 7 - i;
@@ -70,6 +169,19 @@ function drawPosition(s, color) {
             }
             var x = column * 100;
             var y = (7 - row) * 100;
+            if (!visibility[i * 8 + j]) {
+                var piece = document.createElement('div');
+                piece.className = 'piece ' + color + '-darkness';
+                piece.style = `transform: translate(${x}%, ${y}%);`;
+                pieces_div.appendChild(piece);   
+                continue;
+            }
+            var c = s[i * 8 + j];
+            if (c == '.') {
+                continue;
+            }
+            var piece = document.createElement('div');
+            piece.className = 'piece ' + getPieceClass(c);
             piece.style = `transform: translate(${x}%, ${y}%);`;
             pieces_div.appendChild(piece);   
         }

@@ -2,13 +2,13 @@ function create() {
     var name1 = document.getElementById('name1').value;
     var name2 = document.getElementById('name2').value;
     var duration = document.getElementById('duration').value;
-    var timeadd = parseInt(document.getElementById('timeadd').value);
+    var time_add = parseInt(document.getElementById('timeadd').value);
     duration = 3600 * parseInt(duration.substr(0, 1)) + 60 * parseInt(duration.substr(2, 2)) + parseInt(duration.substr(5, 2))
     var data = {
         name_white: name1,
         name_black: name2,
         duration: duration,
-        timeadd: timeadd,
+        time_add: time_add,
     }
     $.ajax('http://' + document.domain + ':' + location.port + '/api/games/create', {
         data: JSON.stringify(data),
