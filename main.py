@@ -47,7 +47,7 @@ def get_game_status(game, board):
         game_status = 'insufficient material'
     time_white = game.spent_time_white
     time_black = game.spent_time_black
-    if game.last_move_time > 0:
+    if game_status == 'active' and game.last_move_time > 0:
         if get_current_color(game.fen) == 'white':
             time_white += time() - game.last_move_time
             if time_white >= game.duration:

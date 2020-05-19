@@ -354,7 +354,7 @@ function updateTime() {
     }
     var t1 = data.duration - data.spent_time_white + white_moves * data.time_add;
     var t2 = data.duration - data.spent_time_black + black_moves * data.time_add;
-    if (data.last_move_time > 0) {
+    if (data.game_status == 'active' && data.last_move_time > 0) {
         if (data.current_move == 'white') {
             t1 -= Date.now() / 1000 - data.last_move_time;
         } else {
