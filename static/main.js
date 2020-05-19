@@ -145,9 +145,7 @@ function calcVisibility(s, color) {
                     }
                 }
             }
-            console.log(c, i, j);
             for (var p of candidates) {
-                console.log(p);
                 if (0 <= p[0] && 0 <= p[1] && p[0] < 8 && p[1] < 8) {
                     res[p[0] * 8 + p[1]] = 1;
                 }
@@ -163,7 +161,6 @@ function getCellNumberByNotation(s) {
 
 function isLastMove(last_move, i, j) {
     var num = i * 8 + j;
-    console.log(num, getCellNumberByNotation(last_move.substr(0, 2)), getCellNumberByNotation(last_move.substr(2, 2)));
     return last_move.length >= 4 && (num == getCellNumberByNotation(last_move.substr(0, 2)) || 
                                        num == getCellNumberByNotation(last_move.substr(2, 2)));
 }
@@ -348,7 +345,7 @@ function calculateTime(t) {
     return zeroPad(h, 1) + ':' + zeroPad(m, 2) + ':' + zeroPad(s, 2);
 }
 
-function updateTime(data, color) {
+function updateTime() {
     var elems = document.getElementsByClassName('player');
     var black_moves = parseInt(data.fen.substr(data.fen.lastIndexOf(' ') + 1)) - 1;
     var white_moves = black_moves;
@@ -357,9 +354,24 @@ function updateTime(data, color) {
     }
     var t1 = data.duration - data.spent_time_white + white_moves * data.time_add;
     var t2 = data.duration - data.spent_time_black + black_moves * data.time_add;
+    if (data.last_move_time > 0) {
+        if (data.current_move == 'white') {
+            t1 -= Date.now() / 1000 - data.last_move_time;
+        } else {
+            t2 -= Date.now() / 1000 - data.last_move_time;
+        }
+    }
+    if (data.game_status == 'active' && (t1 < 0 || t2 < 0)) {
+        socket.emit('processMove', {
+            game_id: data.game_id,
+            move: 'timeout'
+        });
+    }
+    t1 = Math.max(0, t1);
+    t2 = Math.max(0, t2);
     var name1 = data.name_white;
     var name2 = data.name_black;
-    if (color == 'white') {
+    if (data.color == 'white') {
         var tmp = t1;
         t1 = t2;
         t2 = tmp;
@@ -377,17 +389,20 @@ function updateTime(data, color) {
             elems[0].className = 'player active-player';
             elems[1].className = 'player';
         }
-    } else if (data.game_status == 'checkmate') {
+        setTimeout(function() {
+            updateTime();
+        }, 500);
+    } else if (data.game_status == 'checkmate' || data.game_status == 'timeout') {
         if (data.color == data.current_move) {
             elems[0].className = 'player active-player';
             elems[1].className = 'player';
-            elems[0].innerHTML += ' Win';
-            elems[1].innerHTML += ' Lose';
+            elems[0].innerHTML += ' Win by ' + data.game_status;
+            elems[1].innerHTML += ' Lose by ' + data.game_status;
         } else {
             elems[0].className = 'player';
             elems[1].className = 'player active-player';
-            elems[0].innerHTML += ' Lose';
-            elems[1].innerHTML += ' Win';
+            elems[0].innerHTML += ' Lose by ' + data.game_status;
+            elems[1].innerHTML += ' Win by ' + data.game_status;
         }
     } else {
         elems[0].className = 'player';
@@ -395,7 +410,6 @@ function updateTime(data, color) {
         elems[0].innerHTML += ' Draw by ' + data.game_status;
         elems[1].innerHTML += ' Draw by ' + data.game_status;
     }
-    
 }
 
 function updateData(color) {
@@ -422,10 +436,10 @@ function init(game_id, color) {
             data = recieved_data;
             updateData(color);
             drawPosition(parseFen(data.fen), color);
-            updateTime(data, color);
+            updateTime();
         });
         drawPosition(parseFen(data.fen), color);
-        updateTime(data, color);
+        updateTime();
     });
 }
 
