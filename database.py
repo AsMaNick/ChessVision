@@ -53,4 +53,5 @@ class Game(BaseModel):
         return res
         
         
-Game.create_table()
+if __name__ == '__main__':
+    Game.create_table()
