@@ -17,6 +17,32 @@
     overflow: initial;
 }
 
+.left-player {
+    margin:0;
+    margin-left: 20px;
+    float: left;
+}
+
+.right-player {
+    margin:0;
+    float: right;
+}
+
+.left-board {
+    margin:0;
+    margin-left: 20px;
+    margin-top: 15px;
+    margin-bottom: 35px;
+    float: left;
+}
+
+.right-board {
+    margin:0;
+    margin-top: 15px;
+    margin-bottom: 35px;
+    float: right;
+}
+
 .coordinates, .pieces {
     left: 0;
     top: 0;

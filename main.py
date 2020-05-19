@@ -22,13 +22,22 @@ def games():
     
 @app.route('/games/<int:game_id>/<string:color>')
 def game_session(game_id, color):
-    print(game_id, color)
     if color != 'white' and color != 'black':
         return 'Invalid color'
     game = Game.get_or_none(Game.id == game_id)
     if game is None:
         return 'Invalid game id'
     return render_template('main.html', game_id=game_id, color=color)
+    
+    
+@app.route('/games/<int:game_id>/<string:color>/review')
+def game_review(game_id, color):
+    if color != 'white' and color != 'black':
+        return 'Invalid color'
+    game = Game.get_or_none(Game.id == game_id)
+    if game is None:
+        return 'Invalid game id'
+    return render_template('game_review.html', game_id=game_id, color=color)
     
     
 def get_current_color(fen):

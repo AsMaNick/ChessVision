@@ -32,10 +32,10 @@ function getPieceClass(c) {
     return getPieceColor(c) + '-' + getPieceType(c);
 }
 
-function drawCoordinates(white) {
+function drawCoordinates(white, board, need_rotate) {
     var num = 0;
-    for (var element of document.getElementsByClassName("number")) {
-        if (white) {
+    for (var element of board.getElementsByClassName("number")) {
+        if (!need_rotate) {
             element.innerHTML = 8 - num;
         } else {
             element.innerHTML = 1 + num;
@@ -43,8 +43,8 @@ function drawCoordinates(white) {
         num += 1;
     }
     num = 0;
-    for (var element of document.getElementsByClassName("letter")) {
-        if (white) {
+    for (var element of board.getElementsByClassName("letter")) {
+        if (!need_rotate) {
             element.innerHTML = String.fromCharCode('a'.charCodeAt(0) + num);
         } else {
             element.innerHTML = String.fromCharCode('a'.charCodeAt(0) + 7 - num);
@@ -165,16 +165,16 @@ function isLastMove(last_move, i, j) {
                                        num == getCellNumberByNotation(last_move.substr(2, 2)));
 }
 
-function drawPosition(s, color) {
+function drawPosition(s, color, board, need_rotate) {
     var white = (color == "white");
-    drawCoordinates(white);
-    pieces_div = document.getElementsByClassName("pieces")[0];
+    drawCoordinates(white, board, need_rotate);
+    pieces_div = board.getElementsByClassName("pieces")[0];
     pieces_div.innerHTML = '';
     visibility = calcVisibility(s, color);
     for (var i = 0; i < 8; ++i) {
         for (var j = 0; j < 8; ++j) {
             var row = i, column = 7 - j;
-            if (white) {
+            if (!need_rotate) {
                 row = 7 - i;
                 column = j;
             }
@@ -234,7 +234,9 @@ function movePiece(e) {
 }
 
 document.onmousedown = function(e) {
-    if (e.which != 1 || dragObject.elem || data.status != 'ok' || data.color != data.current_move || data.game_status != 'active') {
+    if (e.which != 1 || dragObject.elem || 
+        data.status != 'ok' || data.color != data.current_move || data.game_status != 'active' ||
+        document.getElementsByClassName('board').length > 1) {
         return;
     }
     var elem = e.target.closest('.piece');
@@ -345,8 +347,7 @@ function calculateTime(t) {
     return zeroPad(h, 1) + ':' + zeroPad(m, 2) + ':' + zeroPad(s, 2);
 }
 
-function updateTime() {
-    var elems = document.getElementsByClassName('player');
+function getTimeData() {
     var black_moves = parseInt(data.fen.substr(data.fen.lastIndexOf(' ') + 1)) - 1;
     var white_moves = black_moves;
     if (data.current_move == 'black') {
@@ -361,54 +362,72 @@ function updateTime() {
             t2 -= Date.now() / 1000 - data.last_move_time;
         }
     }
-    if (data.game_status == 'active' && (t1 < 0 || t2 < 0)) {
+    var name1 = data.name_white;
+    var name2 = data.name_black;
+    
+    var white_txt = name1 + ' (' + calculateTime(Math.max(0, t1)) + ')';
+    var black_txt = name2 + ' (' + calculateTime(Math.max(0, t2)) + ')';
+    var white_class_name = 'player';
+    var black_class_name = 'player';
+    if (data.game_status == 'active') {
+        if (data.current_move == 'white') {
+            white_class_name += ' active-player';
+        } else {
+            black_class_name += ' active-player';
+        }
+    } else if (data.game_status == 'checkmate' || data.game_status == 'timeout') {
+        if (data.current_move == 'white') {
+            black_class_name += ' active-player';
+            black_txt += ' Win by ' + data.game_status;
+            white_txt += ' Lose by ' + data.game_status;
+        } else {
+            white_class_name += ' active-player';
+            white_txt += ' Win by ' + data.game_status;
+            black_txt += ' Lose by ' + data.game_status;
+        }
+    } else {
+        white_txt += ' Draw by ' + data.game_status;
+        black_txt += ' Draw by ' + data.game_status;
+    }
+    return {
+        t1: t1,
+        t2: t2,
+        white_txt: white_txt,
+        black_txt: black_txt,
+        white_class_name: white_class_name,
+        black_class_name: black_class_name
+    };
+}
+
+function updateTime() {
+    var time_data = getTimeData();
+    var elems = document.getElementsByClassName('player');
+    if (data.game_status == 'active' && (time_data.t1 < 0 || time_data.t2 < 0)) {
         socket.emit('processMove', {
             game_id: data.game_id,
             move: 'timeout'
         });
     }
-    t1 = Math.max(0, t1);
-    t2 = Math.max(0, t2);
-    var name1 = data.name_white;
-    var name2 = data.name_black;
-    if (data.color == 'white') {
-        var tmp = t1;
-        t1 = t2;
-        t2 = tmp;
-        tmp = name1;
-        name1 = name2;
-        name2 = tmp;
-    }
-    elems[0].innerHTML = name1 + ' (' + calculateTime(t1) + ')';
-    elems[1].innerHTML = name2 + ' (' + calculateTime(t2) + ')';
-    if (data.game_status == 'active') {
-        if (data.color == data.current_move) {
-            elems[0].className = 'player';
-            elems[1].className = 'player active-player';
-        } else {
-            elems[0].className = 'player active-player';
-            elems[1].className = 'player';
-        }
-        setTimeout(function() {
-            updateTime();
-        }, 500);
-    } else if (data.game_status == 'checkmate' || data.game_status == 'timeout') {
-        if (data.color == data.current_move) {
-            elems[0].className = 'player active-player';
-            elems[1].className = 'player';
-            elems[0].innerHTML += ' Win by ' + data.game_status;
-            elems[1].innerHTML += ' Lose by ' + data.game_status;
-        } else {
-            elems[0].className = 'player';
-            elems[1].className = 'player active-player';
-            elems[0].innerHTML += ' Lose by ' + data.game_status;
-            elems[1].innerHTML += ' Win by ' + data.game_status;
-        }
+    if (elems.length < 4) {
+        var f = data.color == 'white' ? 0 : 1;
+        elems[f].innerHTML = time_data.black_txt;
+        elems[f ^ 1].innerHTML = time_data.white_txt;
+        elems[f].className = time_data.black_class_name;
+        elems[f ^ 1].className = time_data.white_class_name;
     } else {
-        elems[0].className = 'player';
-        elems[1].className = 'player';
-        elems[0].innerHTML += ' Draw by ' + data.game_status;
-        elems[1].innerHTML += ' Draw by ' + data.game_status;
+        var f = data.color == 'white' ? 0 : 2;
+        for (var i = 0; i <= 1; ++i) {
+            elems[i ^ f].innerHTML = time_data.black_txt;
+            elems[i ^ f].className = time_data.black_class_name;
+        }
+        for (var i = 2; i <= 3; ++i) {
+            elems[i ^ f].innerHTML = time_data.white_txt;
+            elems[i ^ f].className = time_data.white_class_name;
+        }
+        elems[0].className += ' left-player';
+        elems[2].className += ' left-player';
+        elems[1].className += ' right-player';
+        elems[3].className += ' right-player';
     }
 }
 
@@ -430,16 +449,41 @@ function init(game_id, color) {
             alert('Error happend: ', data.status);
             return;
         }
+        var board = document.getElementsByClassName('board')[0];
         updateData(color);
         socket = io.connect('http://' + document.domain + ':' + location.port);
         socket.on('updatePosition', function(recieved_data) {
             data = recieved_data;
             updateData(color);
-            drawPosition(parseFen(data.fen), color);
-            updateTime();
+            drawPosition(parseFen(data.fen), color, board, color == 'black');
+            updateTime(true);
         });
-        drawPosition(parseFen(data.fen), color);
-        updateTime();
+        drawPosition(parseFen(data.fen), color, board, color == 'black');
+        updateTime(true);
+    });
+}
+
+function init_review(game_id, color) {
+    $.getJSON('http://' + document.domain + ':' + location.port + '/api/games/' + game_id, function(recieved_data) {
+        data = recieved_data;
+        if (data.status != 'ok') {
+            alert('Error happend: ', data.status);
+            return;
+        }
+        var left_board = document.getElementsByClassName('left-board')[0];
+        var right_board = document.getElementsByClassName('right-board')[0];
+        updateData(color);
+        socket = io.connect('http://' + document.domain + ':' + location.port);
+        socket.on('updatePosition', function(recieved_data) {
+            data = recieved_data;
+            updateData(color);
+            drawPosition(parseFen(data.fen), 'white', left_board, color == 'black');
+            drawPosition(parseFen(data.fen), 'black', right_board, color == 'black');
+            updateTime(false);
+        });
+        drawPosition(parseFen(data.fen), 'white', left_board, color == 'black');
+        drawPosition(parseFen(data.fen), 'black', right_board, color == 'black');
+        updateTime(false);
     });
 }
 
