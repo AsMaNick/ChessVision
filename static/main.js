@@ -550,7 +550,6 @@ document.onkeyup = function(e) {
         var num = 0;
         var all_elems = document.getElementsByClassName('move');
         for (var move of all_elems) {
-            console.log(move);
             if (move.className == 'move active-move') {
                 break;
             }
