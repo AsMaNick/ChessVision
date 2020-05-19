@@ -443,5 +443,14 @@ function init(game_id, color) {
     });
 }
 
+function loadPGN() {
+    if (data.status != 'ok') {
+        return;
+    }
+    $.getJSON('http://' + document.domain + ':' + location.port + '/api/games/' + data.game_id + '/pgn', function(recieved_data) {
+        document.getElementById('pgn').innerHTML = '<textarea style="width: 100%; height: 200px">' + recieved_data.pgn + '</textarea>';
+    });
+}
+
 var data = {'status': 'not_loaded'};
 var socket;

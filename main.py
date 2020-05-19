@@ -91,6 +91,51 @@ def get_data(game_id):
 def get_game_data(game_id):
     return jsonify(get_data(game_id))
     
+
+@app.route('/api/games/<int:game_id>/pgn', methods=['GET'])
+def get_game_pgn(game_id):
+    game = Game.get_or_none(Game.id == game_id)
+    if game is None:
+        res = {
+            'status': 'not exist'
+        }
+    else:
+        board = chess.Board(game.fen)
+        game_status = get_game_status(game, board)
+        if game_status == 'active':
+            result = '?'
+            termination = '?'
+        elif game_status == 'checkmate' or game_status == 'timeout':
+            if get_current_color(game.fen) == 'white':
+                result = '0-1'
+                termination = f'{game.name_black} won by {game_status}'
+            else:
+                result = '1-0'
+                termination = f'{game.name_white} won by {game_status}'
+        else:
+            result = '1/2-1/2'
+            termination = f'Draw by {game_status}'
+        pgn = '''[Event "Live Chess"]
+[Site "chessvision.com"]
+[White "{}"]
+[Black "{}"]
+[Result "{}"]
+[TimeControl "{}+{}"]
+[Termination "{}"]
+
+'''.format(game.name_white, game.name_black, result, int(game.duration), int(game.time_add), termination)
+        board = chess.Board()
+        for num, move in enumerate(game.parse_moves()):
+            pgn += f'{1 + num // 2}.{"." * 2 * (num % 2)} {board.san(chess.Move.from_uci(move))} '
+            board.push_uci(move)
+        if result != '?':
+            pgn += result
+        res = {
+            'status': 'ok',
+            'pgn': pgn
+        }
+    return jsonify(res)
+    
     
 @app.route('/api/games/create', methods=['POST'])
 def create_game():
@@ -121,15 +166,16 @@ def recieve_move(data, methods=['GET', 'POST']):
         game.spent_time_white += cur_time - game.last_move_time
     else:
         game.spent_time_black += cur_time - game.last_move_time
-    game.last_move_time = cur_time
-    game.last_move = move
     try:
         board.push_uci(move)
     except Exception as e:
         try:
-            board.push_uci(move + 'q')
+            move += 'q'
+            board.push_uci(move)
         except Exception as e:
             return
+    game.add_move(move)
+    game.last_move_time = cur_time
     game.fen = board.fen()
     game.save()
     socketio.emit('updatePosition', get_data(data['game_id']))
