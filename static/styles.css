@@ -17,7 +17,7 @@
     overflow: initial;
 }
 
-.left-player {
+.left-player, .moves-container {
     margin:0;
     margin-left: 20px;
     float: left;
@@ -26,6 +26,19 @@
 .right-player {
     margin:0;
     float: right;
+}
+
+.moves-container {
+    margin-top: 15px;
+    width: 50%;
+}
+
+.move {
+    cursor: pointer;
+}
+
+.active-move {
+    background-color: rgba(255, 255, 0, 0.4);
 }
 
 .left-board {

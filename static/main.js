@@ -414,6 +414,11 @@ function updateTime() {
         elems[f ^ 1].innerHTML = time_data.white_txt;
         elems[f].className = time_data.black_class_name;
         elems[f ^ 1].className = time_data.white_class_name;
+        if (data.game_status == 'active') {
+            setTimeout(function() {
+                updateTime();
+            }, 500);
+        }
     } else {
         var f = data.color == 'white' ? 0 : 2;
         for (var i = 0; i <= 1; ++i) {
@@ -463,6 +468,42 @@ function init(game_id, color) {
     });
 }
 
+function updateToState(elem, num) {
+    data.fen = data.states[num];
+    data.last_move = '';
+    if (num) {
+        data.last_move = data.moves_uci[num - 1];
+    }
+    var left_board = document.getElementsByClassName('left-board')[0];
+    var right_board = document.getElementsByClassName('right-board')[0];
+    if (num + 1 == data.states.length) {
+        data.game_status = data.real_game_status;
+    } else {
+        data.game_status = 'active';
+    }
+    drawPosition(parseFen(data.fen), 'white', left_board, data.color == 'black');
+    drawPosition(parseFen(data.fen), 'black', right_board, data.color == 'black');
+    for (var move of document.getElementsByClassName('move')) {
+        move.className = 'move';
+    }
+    elem.className = 'move active-move';
+}
+
+function addMovesHistory(moves) {
+    var res = '<span onclick="updateToState(event.target, 0)" class="move">Moves: </span>';
+    for (var i = 0; i < moves.length; ++i) {
+        if (i % 2 == 0) {
+            res += (i / 2 + 1).toString() + '. ';
+        }
+        var class_name = 'move';
+        if (i + 1 == moves.length) {
+            class_name += ' active-move';
+        }
+        res += '<span onclick="updateToState(event.target, ' + (i + 1).toString() + ')" class="' + class_name + '">' + moves[i] + ' </span>'
+    }
+    document.getElementsByClassName('moves-container')[0].innerHTML = res;
+}
+
 function init_review(game_id, color) {
     $.getJSON('http://' + document.domain + ':' + location.port + '/api/games/' + game_id, function(recieved_data) {
         data = recieved_data;
@@ -473,17 +514,24 @@ function init_review(game_id, color) {
         var left_board = document.getElementsByClassName('left-board')[0];
         var right_board = document.getElementsByClassName('right-board')[0];
         updateData(color);
-        socket = io.connect('http://' + document.domain + ':' + location.port);
+        data.real_game_status = data.game_status;
+        /*socket = io.connect('http://' + document.domain + ':' + location.port);
         socket.on('updatePosition', function(recieved_data) {
             data = recieved_data;
             updateData(color);
             drawPosition(parseFen(data.fen), 'white', left_board, color == 'black');
             drawPosition(parseFen(data.fen), 'black', right_board, color == 'black');
             updateTime(false);
-        });
+        });*/
         drawPosition(parseFen(data.fen), 'white', left_board, color == 'black');
         drawPosition(parseFen(data.fen), 'black', right_board, color == 'black');
         updateTime(false);
+        $.getJSON('http://' + document.domain + ':' + location.port + '/api/games/' + game_id + '/states', function(recieved_data) {
+            data.moves_san = recieved_data.moves_san;
+            data.moves_uci = recieved_data.moves_uci;
+            data.states = recieved_data.states;
+            addMovesHistory(data.moves_san);
+        });
     });
 }
 
@@ -494,6 +542,31 @@ function loadPGN() {
     $.getJSON('http://' + document.domain + ':' + location.port + '/api/games/' + data.game_id + '/pgn', function(recieved_data) {
         document.getElementById('pgn').innerHTML = '<textarea style="width: 100%; height: 200px">' + recieved_data.pgn + '</textarea>';
     });
+}
+
+document.onkeyup = function(e) {
+    e = e || window.event;
+    if (e.keyCode == '37' || e.keyCode == '39') {
+        var num = 0;
+        var all_elems = document.getElementsByClassName('move');
+        for (var move of all_elems) {
+            console.log(move);
+            if (move.className == 'move active-move') {
+                break;
+            }
+            ++num;
+        }
+        var new_num = num;
+        if (e.keyCode == '37' && num > 0) {
+            --new_num;
+        }
+        if (e.keyCode == '39' && num + 1 < all_elems.length) {
+            ++new_num;
+        }
+        if (num != new_num) {
+            updateToState(all_elems[new_num], new_num);
+        }
+    }
 }
 
 var data = {'status': 'not_loaded'};

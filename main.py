@@ -146,6 +146,32 @@ def get_game_pgn(game_id):
     return jsonify(res)
     
     
+@app.route('/api/games/<int:game_id>/states', methods=['GET'])
+def get_game_states(game_id):
+    game = Game.get_or_none(Game.id == game_id)
+    if game is None:
+        res = {
+            'status': 'not exist'
+        }
+    else:
+        board = chess.Board()
+        moves_uci = []
+        moves_san = []
+        states = [board.fen()]
+        for num, move in enumerate(game.parse_moves()):
+            moves_uci.append(move)
+            moves_san.append(board.san(chess.Move.from_uci(move)))
+            board.push_uci(move)
+            states.append(board.fen())
+        res = {
+            'status': 'ok',
+            'moves_uci': moves_uci,
+            'moves_san': moves_san,
+            'states': states
+        }    
+    return jsonify(res)
+    
+    
 @app.route('/api/games/create', methods=['POST'])
 def create_game():
     data = request.json
