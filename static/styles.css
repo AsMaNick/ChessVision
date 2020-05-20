@@ -1,5 +1,5 @@
-.player {
-    width: 500px;
+.player, .captured-pieces {
+    width: 448px;
     margin:0 auto;
     overflow: initial;
 }
@@ -11,8 +11,8 @@
 .board {
     margin:0 auto;
     background: url(img/board.jpg) 0% 0% / 100% 100% no-repeat;
-    width: 500px;
-    height: 500px;
+    width: 448px;
+    height: 448px;
     border-radius: 3px;
     overflow: initial;
 }
@@ -39,6 +39,17 @@
 
 .active-move {
     background-color: rgba(255, 255, 0, 0.4);
+}
+
+.captured-pieces {
+    transform: translate(0);
+    margin-bottom: 5px;
+}
+
+.captured-piece {
+    width: 20px !important;
+    height: 20px !important;
+    cursor: default !important;
 }
 
 .left-board {

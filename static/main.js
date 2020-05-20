@@ -1,4 +1,4 @@
-var BOARD_SIZE = 500;
+var BOARD_SIZE = 448;
 
 function getPieceColor(c) {
     if (c.toLowerCase() == c.toUpperCase()) {
@@ -30,6 +30,13 @@ function getPieceType(c) {
 
 function getPieceClass(c) {
     return getPieceColor(c) + '-' + getPieceType(c);
+}
+
+function getColoredPiece(c, color) {
+    if (color == 'white') {
+        return c.toUpperCase();
+    }
+    return c.toLowerCase();
 }
 
 function drawCoordinates(white, board, need_rotate) {
@@ -163,6 +170,118 @@ function isLastMove(last_move, i, j) {
     var num = i * 8 + j;
     return last_move.length >= 4 && (num == getCellNumberByNotation(last_move.substr(0, 2)) || 
                                        num == getCellNumberByNotation(last_move.substr(2, 2)));
+}
+
+function getCapturedPieces(board, color) {
+    var cnt = {
+        'p': 0,
+        'n': 0,
+        'b': 0,
+        'r': 0,
+        'q': 0,
+        'k': 0,
+        'P': 0,
+        'N': 0,
+        'B': 0,
+        'R': 0,
+        'Q': 0,
+        'K': 0,
+    };
+    for (var i = 0; i < 8; ++i) {
+        for (var j = 0; j < 8; ++j) {
+            var c = board[i * 8 + j];
+            if (c != '.') {
+                ++cnt[c];
+            }
+        }
+    }
+    var res = [];
+    for (var i = cnt[getColoredPiece('p', color)]; i < 8; ++i) {
+        res.push(getColoredPiece('p', color));
+    }
+    for (var i = cnt[getColoredPiece('n', color)]; i < 2; ++i) {
+        res.push(getColoredPiece('n', color));
+    }
+    for (var i = cnt[getColoredPiece('b', color)]; i < 2; ++i) {
+        res.push(getColoredPiece('b', color));
+    }
+    for (var i = cnt[getColoredPiece('r', color)]; i < 2; ++i) {
+        res.push(getColoredPiece('r', color));
+    }
+    for (var i = cnt[getColoredPiece('q', color)]; i < 1; ++i) {
+        res.push(getColoredPiece('q', color));
+    }
+    return res;
+}
+
+function getPieceCost(c) {
+    c = c.toLowerCase();
+    if (c == 'p') {
+        return 1;
+    }
+    if (c == 'n' || c == 'b') {
+        return 3;
+    }
+    if (c == 'r') {
+        return 5;
+    }
+    if (c == 'q') {
+        return 9;
+    }
+    return 0;
+}
+
+function getWhiteAdvantage(board) {
+    var res = 0;
+    for (var i = 0; i < 8; ++i) {
+        for (var j = 0; j < 8; ++j) {
+            var c = board[i * 8 + j];
+            if (c != '.') {
+                if (getPieceColor(c) == 'white') {
+                    res += getPieceCost(c);
+                } else {
+                    res -= getPieceCost(c);
+                }
+            }
+        }
+    }
+    return res;
+}
+
+function drawCapturedPieces(elem, pieces, advantage) {
+    var shift = -50;
+    var s = ''
+    for (var i = 0; i < pieces.length; ++i) {
+        shift += 50;
+        if (i && pieces[i] != pieces[i - 1]) {
+            shift += 50;
+        }
+        s += `<div class="piece ${getPieceClass(pieces[i])} captured-piece" style="transform: translate(${shift}%, 0%);"></div>`;
+    }
+    if (advantage <= 0) {
+        advantage = '';
+    } else {
+        advantage = '+' + advantage;
+    }
+    shift += 125;
+    s += `<div class="captured-piece" style="transform: translate(${shift}%, 0%); display: flex; align-items: flex-end;">${advantage}</div>`;
+    elem.innerHTML = s;
+}
+
+function drawAllCapturedPieces() {
+    var s = parseFen(data.fen);
+    var elems = document.getElementsByClassName('captured-pieces');
+    if (elems.length == 2) {
+        var f = data.color == 'white' ? 0 : 1;
+        drawCapturedPieces(elems[f], getCapturedPieces(s, 'white'), -getWhiteAdvantage(s));
+        drawCapturedPieces(elems[1 ^ f], getCapturedPieces(s, 'black'), getWhiteAdvantage(s));
+    } else {
+        var f = data.color == 'white' ? 0 : 2;
+        drawCapturedPieces(elems[f], getCapturedPieces(s, 'white'), -getWhiteAdvantage(s));
+        drawCapturedPieces(elems[f ^ 1], getCapturedPieces(s, 'white'), -getWhiteAdvantage(s));
+        drawCapturedPieces(elems[f ^ 2], getCapturedPieces(s, 'black'), getWhiteAdvantage(s));
+        drawCapturedPieces(elems[f ^ 3], getCapturedPieces(s, 'black'), getWhiteAdvantage(s));
+    }
 }
 
 function drawPosition(s, color, board, need_rotate) {
@@ -429,10 +548,10 @@ function updateTime() {
             elems[i ^ f].innerHTML = time_data.white_txt;
             elems[i ^ f].className = time_data.white_class_name;
         }
-        elems[0].className += ' left-player';
+        /*elems[0].className += ' left-player';
         elems[2].className += ' left-player';
         elems[1].className += ' right-player';
-        elems[3].className += ' right-player';
+        elems[3].className += ' right-player';*/
     }
 }
 
@@ -468,9 +587,11 @@ function init(game_id, color) {
             data = recieved_data;
             updateData(color);
             drawPosition(parseFen(data.fen), color, board, color == 'black');
+            drawAllCapturedPieces();
             updateTime(true);
         });
         drawPosition(parseFen(data.fen), color, board, color == 'black');
+        drawAllCapturedPieces();
         updateTime(true);
     });
 }
@@ -490,6 +611,7 @@ function updateToState(elem, num) {
     }
     drawPosition(parseFen(data.fen), 'white', left_board, data.color == 'black');
     drawPosition(parseFen(data.fen), 'black', right_board, data.color == 'black');
+    drawAllCapturedPieces();
     for (var move of document.getElementsByClassName('move')) {
         move.className = 'move';
     }
@@ -532,6 +654,7 @@ function init_review(game_id, color) {
         });*/
         drawPosition(parseFen(data.fen), 'white', left_board, color == 'black');
         drawPosition(parseFen(data.fen), 'black', right_board, color == 'black');
+        drawAllCapturedPieces();
         updateTime(false);
         $.getJSON('http://' + document.domain + ':' + location.port + '/api/games/' + game_id + '/states', function(recieved_data) {
             data.moves_san = recieved_data.moves_san;
