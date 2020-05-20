@@ -447,6 +447,12 @@ function updateData(color) {
     }
 }
 
+function playSound(path) {
+    var audio = new Audio();
+    audio.src = '/static/gen/sound/move.mp3';
+    audio.autoplay = true;
+}
+
 function init(game_id, color) {
     $.getJSON('http://' + document.domain + ':' + location.port + '/api/games/' + game_id, function(recieved_data) {
         data = recieved_data;
@@ -458,6 +464,7 @@ function init(game_id, color) {
         updateData(color);
         socket = io.connect('http://' + document.domain + ':' + location.port);
         socket.on('updatePosition', function(recieved_data) {
+            playSound();
             data = recieved_data;
             updateData(color);
             drawPosition(parseFen(data.fen), color, board, color == 'black');

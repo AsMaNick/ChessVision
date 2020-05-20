@@ -1,5 +1,6 @@
+import os
 import chess
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, send_from_directory
 from flask_socketio import SocketIO
 from flask_assets import Environment, Bundle
 from database import *
@@ -15,6 +16,12 @@ def get_str(board):
     return str(board).replace(' ', '').replace('\n', '')
 
 
+@app.route('/favicon.ico')
+def favicon():
+    return send_from_directory(os.path.join(app.root_path, 'static/gen/img'),
+                               'favicon.ico', mimetype='image/vnd.microsoft.icon')
+                               
+                               
 @app.route('/games')
 def games():
     return render_template('new_game.html')
