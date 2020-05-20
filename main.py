@@ -54,8 +54,12 @@ def get_game_status(game, board):
         game_status = 'stalemate'
     elif board.is_insufficient_material():
         game_status = 'insufficient material'
-    time_white = game.spent_time_white
-    time_black = game.spent_time_black
+    black_moves = int(game.fen[game.fen.rfind(' ') + 1:]) - 1
+    white_moves = black_moves
+    time_white = game.spent_time_white - white_moves * game.time_add
+    time_black = game.spent_time_black - black_moves * game.time_add
+    if get_current_color(game.fen) == 'black':
+        white_moves += 1
     if game_status == 'active' and game.last_move_time > 0:
         if get_current_color(game.fen) == 'white':
             time_white += time() - game.last_move_time
