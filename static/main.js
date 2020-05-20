@@ -271,16 +271,10 @@ function drawCapturedPieces(elem, pieces, advantage) {
 function drawAllCapturedPieces() {
     var s = parseFen(data.fen);
     var elems = document.getElementsByClassName('captured-pieces');
-    if (elems.length == 2) {
-        var f = data.color == 'white' ? 0 : 1;
-        drawCapturedPieces(elems[f], getCapturedPieces(s, 'white'), -getWhiteAdvantage(s));
-        drawCapturedPieces(elems[1 ^ f], getCapturedPieces(s, 'black'), getWhiteAdvantage(s));
-    } else {
-        var f = data.color == 'white' ? 0 : 2;
-        drawCapturedPieces(elems[f], getCapturedPieces(s, 'white'), -getWhiteAdvantage(s));
-        drawCapturedPieces(elems[f ^ 1], getCapturedPieces(s, 'white'), -getWhiteAdvantage(s));
-        drawCapturedPieces(elems[f ^ 2], getCapturedPieces(s, 'black'), getWhiteAdvantage(s));
-        drawCapturedPieces(elems[f ^ 3], getCapturedPieces(s, 'black'), getWhiteAdvantage(s));
+    var f = data.color == 'white' ? 0 : 1;
+    for (var i = 0; i < elems.length; i += 2) {
+        drawCapturedPieces(elems[i + f], getCapturedPieces(s, 'white'), -getWhiteAdvantage(s));
+        drawCapturedPieces(elems[i + (1 ^ f)], getCapturedPieces(s, 'black'), getWhiteAdvantage(s));
     }
 }
 
@@ -527,31 +521,19 @@ function updateTime() {
             move: 'timeout'
         });
     }
+    var f = data.color == 'white' ? 0 : 1;
+    for (var i = 0; i + 1 < elems.length; i += 2) {
+        elems[i + f].innerHTML = time_data.black_txt;
+        elems[i + (f ^ 1)].innerHTML = time_data.white_txt;
+        elems[i + f].className = time_data.black_class_name;
+        elems[i + (f ^ 1)].className = time_data.white_class_name;
+    }
     if (elems.length < 4) {
-        var f = data.color == 'white' ? 0 : 1;
-        elems[f].innerHTML = time_data.black_txt;
-        elems[f ^ 1].innerHTML = time_data.white_txt;
-        elems[f].className = time_data.black_class_name;
-        elems[f ^ 1].className = time_data.white_class_name;
         if (data.game_status == 'active') {
             setTimeout(function() {
                 updateTime();
             }, 500);
         }
-    } else {
-        var f = data.color == 'white' ? 0 : 2;
-        for (var i = 0; i <= 1; ++i) {
-            elems[i ^ f].innerHTML = time_data.black_txt;
-            elems[i ^ f].className = time_data.black_class_name;
-        }
-        for (var i = 2; i <= 3; ++i) {
-            elems[i ^ f].innerHTML = time_data.white_txt;
-            elems[i ^ f].className = time_data.white_class_name;
-        }
-        /*elems[0].className += ' left-player';
-        elems[2].className += ' left-player';
-        elems[1].className += ' right-player';
-        elems[3].className += ' right-player';*/
     }
 }
 
