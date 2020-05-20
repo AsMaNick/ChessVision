@@ -1,0 +1,25 @@
+<a href='new_game'>Create new game</a>
+
+<table>
+    <caption>Games</caption>
+    <tr>
+        <th>Game id</th>
+        <th>White</th> 
+        <th>Black</th>
+        <th>Time control</th>
+        <th>Result</th>
+        <th>Termination</th>
+    </tr>
+    {% for game in games %}
+    <tr>
+        <td>
+            <a href='games/{{game.id}}/white/review'>{{game.id}}</a>
+        </td>
+        <td>{{ game.name_white }}</td> 
+        <td>{{ game.name_black }}</td>
+        <td>{{ game.get_time_control() }}</td>
+        <td>{{ game.get_result()[0] }}</td>
+        <td>{{ game.get_result()[1] }}</td>
+    </tr>
+    {% endfor %}
+</table>

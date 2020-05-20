@@ -1,5 +1,6 @@
 from time import time
 from peewee import *
+import chess
 
 
 db = SqliteDatabase('data/chess_vision.db')
@@ -51,7 +52,57 @@ class Game(BaseModel):
                 pos += 1
             res.append(move)
         return res
+
+    def get_time_control(self):
+        if self.duration > 3600:
+            return '{}:{:02d}:{:02d} + {}'.format(int(self.duration) // 3600, 
+                                                  int(self.duration) % 3600 // 60, 
+                                                  int(self.duration) % 60, int(self.time_add))
+        return '{}:{:02d} + {}'.format(int(self.duration) // 60,
+                                           int(self.duration) % 60, int(self.time_add))
+                                           
+    def get_current_color(self):
+        if self.fen[self.fen.find(' ') + 1] == 'w':
+            return 'white'
+        return 'black'
         
+    def get_game_status(self):
+        board = chess.Board(self.fen)
+        game_status = 'active'
+        if board.is_checkmate():
+            game_status = 'checkmate'
+        elif board.is_stalemate():
+            game_status = 'stalemate'
+        elif board.is_insufficient_material():
+            game_status = 'insufficient material'
+        black_moves = int(self.fen[self.fen.rfind(' ') + 1:]) - 1
+        white_moves = black_moves
+        time_white = self.spent_time_white - white_moves * self.time_add
+        time_black = self.spent_time_black - black_moves * self.time_add
+        if self.get_current_color() == 'black':
+            white_moves += 1
+        if game_status == 'active' and self.last_move_time > 0:
+            if self.get_current_color() == 'white':
+                time_white += time() - self.last_move_time
+                if time_white >= self.duration:
+                    game_status = 'timeout'
+            else:
+                time_black += time() - self.last_move_time
+                if time_black >= self.duration:
+                    game_status = 'timeout'
+        return game_status
         
+    def get_result(self):
+        game_status = self.get_game_status()
+        if game_status == 'active':
+            return '?', 'active'
+        if game_status == 'stalemate' or game_status == 'insufficient material':
+            return '1/2-1/2', f'Draw by {game_status}'
+        if self.get_current_color() == 'white':
+            return '0-1', f'{self.name_black} won by {game_status}'
+        else:
+            return '1-0', f'{self.name_white} won by {game_status}'
+            
+            
 if __name__ == '__main__':
     Game.create_table()

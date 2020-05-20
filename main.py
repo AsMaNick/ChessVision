@@ -22,10 +22,15 @@ def favicon():
                                'favicon.ico', mimetype='image/vnd.microsoft.icon')
                                
                                
-@app.route('/games')
-def games():
+@app.route('/new_game')
+def new_game():
     return render_template('new_game.html')
 
+    
+@app.route('/games')
+def games():
+    return render_template('games.html', games=Game.select())
+    
     
 @app.route('/games/<int:game_id>/<string:color>')
 def game_session(game_id, color):
@@ -45,40 +50,8 @@ def game_review(game_id, color):
     if game is None:
         return 'Invalid game id'
     return render_template('game_review.html', game_id=game_id, color=color)
-    
-    
-def get_current_color(fen):
-    if fen[fen.find(' ') + 1] == 'w':
-        return 'white'
-    return 'black'
-    
-    
-def get_game_status(game, board):
-    game_status = 'active'
-    if board.is_checkmate():
-        game_status = 'checkmate'
-    elif board.is_stalemate():
-        game_status = 'stalemate'
-    elif board.is_insufficient_material():
-        game_status = 'insufficient material'
-    black_moves = int(game.fen[game.fen.rfind(' ') + 1:]) - 1
-    white_moves = black_moves
-    time_white = game.spent_time_white - white_moves * game.time_add
-    time_black = game.spent_time_black - black_moves * game.time_add
-    if get_current_color(game.fen) == 'black':
-        white_moves += 1
-    if game_status == 'active' and game.last_move_time > 0:
-        if get_current_color(game.fen) == 'white':
-            time_white += time() - game.last_move_time
-            if time_white >= game.duration:
-                game_status = 'timeout'
-        else:
-            time_black += time() - game.last_move_time
-            if time_black >= game.duration:
-                game_status = 'timeout'
-    return game_status
-    
-    
+
+
 def get_data(game_id):
     game = Game.get_or_none(Game.id == game_id)
     if game is None:
@@ -88,7 +61,7 @@ def get_data(game_id):
     else:
         board = chess.Board(game.fen)
         moves = [str(move) for move in board.legal_moves]
-        game_status = get_game_status(game, board)
+        game_status = game.get_game_status()
         res = {
             'status': 'ok',
             'game_id': game.id,
@@ -120,21 +93,7 @@ def get_game_pgn(game_id):
             'status': 'not exist'
         }
     else:
-        board = chess.Board(game.fen)
-        game_status = get_game_status(game, board)
-        if game_status == 'active':
-            result = '?'
-            termination = '?'
-        elif game_status == 'checkmate' or game_status == 'timeout':
-            if get_current_color(game.fen) == 'white':
-                result = '0-1'
-                termination = f'{game.name_black} won by {game_status}'
-            else:
-                result = '1-0'
-                termination = f'{game.name_white} won by {game_status}'
-        else:
-            result = '1/2-1/2'
-            termination = f'Draw by {game_status}'
+        result, termination = game.get_result()
         pgn = '''[Event "Live Chess"]
 [Site "chessvision.com"]
 [White "{}"]
@@ -201,14 +160,14 @@ def recieve_move(data, methods=['GET', 'POST']):
         return
     board = chess.Board(game.fen)
     cur_time = time()
-    if get_game_status(game, board) != 'active':
+    if game.get_game_status() != 'active':
         socketio.emit('updatePosition', get_data(data['game_id']))
         return    
     if move == 'timeout':
         return
     if game.last_move_time == 0:
         game.last_move_time = cur_time
-    if get_current_color(game.fen) == 'white':
+    if game.get_current_color() == 'white':
         game.spent_time_white += cur_time - game.last_move_time
     else:
         game.spent_time_black += cur_time - game.last_move_time
