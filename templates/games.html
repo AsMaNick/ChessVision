@@ -15,8 +15,12 @@
         <td>
             <a href='games/{{game.id}}/white/review'>{{game.id}}</a>
         </td>
-        <td>{{ game.name_white }}</td> 
-        <td>{{ game.name_black }}</td>
+        <td>
+            <a href='games/{{game.id}}/white'>{{ game.name_white }}</a>
+        </td> 
+        <td>
+            <a href='games/{{game.id}}/black'>{{ game.name_black }}</a>
+        </td> 
         <td>{{ game.get_time_control() }}</td>
         <td>{{ game.get_result()[0] }}</td>
         <td>{{ game.get_result()[1] }}</td>
